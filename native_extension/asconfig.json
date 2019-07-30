@@ -1,0 +1,10 @@
+{
+	"type": "lib",
+	"config": "airmobile",
+	"compilerOptions": {
+		"source-path": ["src"],
+		"include-sources": ["src"],
+		"output": "swc/ZarinPal.swc"
+	},
+	"files": ["src/com/zarinpal/ZarinPal.as"]
+}

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Zarinpal native extension build script" default="all">
+
+    <!-- Config -->
+    <property file="build.properties"/>
+		<property environment="env"/>
+
+    <!-- All -->
+    <target name="all" depends="swc,android,package" description="Full build of extension"/>
+
+    <!--
+    ================================================================
+                                Android
+    ================================================================
+    -->
+    <target name="android" description="Build Android Library.">
+      <echo message="Compiling android source files - using Gradle:"/>
+			<exec executable="../native_library/gradlew.bat" failonerror="false" dir="../native_library">
+				<arg value="--version"/>
+			</exec>
+			<exec executable="../native_library/gradlew.bat" failonerror="true" dir="../native_library">
+				<arg value="assembleRelease"/>
+			</exec>
+      <mkdir dir="temp/android"/>
+			<unzip src="../native_library/build/outputs/aar/native_library-release.aar" dest="temp/android">
+				<patternset>
+					<include name="classes.jar"/>
+   			</patternset>
+			</unzip>
+			<move file="temp/android/classes.jar" tofile="temp/android/${name}.jar" overwrite="true"/>
+			
+      <!-- Dependency Libraries -->
+      <copy file="../native_library/libs/com.zarinpal/purchase/purchase-${zarinpal.version}.jar" tofile="temp/android/com.zarinpal.purchase.jar"/>
+      <copy file="../native_library/libs/com.mcxiaoke.volley/library/library-${volley.version}.jar" tofile="temp/android/com.mcxiaoke.volley.library.jar"/>
+			
+			<delete dir="../native_library/build/"/>
+    </target>
+
+    <!--
+    ================================================================
+                            Actionscript (SWC)
+    ================================================================
+    -->
+    <target name="swc" description="Build SWC library">
+        <mkdir dir="temp/swc/content/"/>
+        <exec executable="${env.FLEX_HOME}/bin/compc.bat" failonerror="true">
+            <env key="AIR_SDK_HOME" value="${env.FLEX_HOME}"/>
+            <arg line='-source-path ../native_extension/src'/>
+            <arg line='-include-sources ../native_extension/src'/>
+            <arg line='-output temp/swc/${name}.swc'/>
+            <arg line='-external-library-path+="${env.FLEX_HOME}/frameworks/libs/air/airglobal.swc"'/>
+        </exec>
+
+        <unzip src="temp/swc/${name}.swc" dest="temp/swc/content" overwrite="true"/>
+        <!-- Copy .swc to bin directory -->
+        <copy file="temp/swc/${name}.swc" tofile="../dist/${extensionID}.swc" overwrite="true" />
+
+        <copy file="temp/swc/content/library.swf" todir="temp/android" overwrite="true"/>
+        <copy file="temp/swc/content/library.swf" todir="temp/default" overwrite="true"/>
+    </target>
+
+    <!--
+    ================================================================
+                                Package
+    ================================================================
+    -->
+    <target name="package" description="Create the extension package">
+        <exec executable="${env.FLEX_HOME}/bin/adt.bat" failonerror="true" dir="temp/">
+            <arg value="-package"/>
+            <arg value="-target"/>
+            <arg value="ane"/>
+            <arg value="${extensionID}.ane"/>
+            <arg value="../extension.xml"/>
+            <arg line="-swc swc/${name}.swc"/>
+            <arg line="-platform Android-ARM -platformoptions ../platform-android.xml -C android/ ."/>
+            <arg line="-platform Android-x86 -platformoptions ../platform-android.xml -C android/ ."/>
+            <arg line="-platform default -C default/ ."/>
+        </exec>
+        <move file="temp/${extensionID}.ane" todir="../dist"/>
+        <delete dir="temp/"/>
+    </target>
+
+		<!--
+    ================================================================
+                                Example
+    ================================================================
+		-->
+
+</project>
