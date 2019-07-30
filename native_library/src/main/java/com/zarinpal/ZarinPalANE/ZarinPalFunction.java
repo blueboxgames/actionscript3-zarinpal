@@ -17,7 +17,7 @@ public class ZarinPalFunction implements FREFunction {
 	@Override
 	public FREObject call(FREContext freContext, FREObject[] args) {
 		if(freContext == null) {
-			Log.i(ZarinPalANE.TAG, "No context recieved");
+			Log.i(ZarinPalANE.TAG, "No context received");
 			return null;
 		}
 		
@@ -34,7 +34,20 @@ public class ZarinPalFunction implements FREFunction {
 				String callBackURL = args[4].getAsString();
 				String email = args[5].getAsString();
 				String mobileNumber = args[6].getAsString();
-				ZarinPalANE.getInstance().startPayment(merchantID, amount, description, callBackURL, email, mobileNumber);
+				Boolean useSandBox = args[7].getAsBool();
+				ZarinPalANE.getInstance().startPayment(merchantID, amount, description, callBackURL, email, mobileNumber, useSandBox);
+				return null;
+			}
+
+			if(command.equalsIgnoreCase("getPurchase"))
+			{
+				ZarinPalANE.getInstance().getPurchase();
+				return null;
+			}
+
+			if(command.equalsIgnoreCase("getRefID"))
+			{
+				return FREObject.newObject(ZarinPalANE.getInstance().getRefID());
 			}
 		}
 		catch (Exception error)

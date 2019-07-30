@@ -7,7 +7,7 @@ package com.zarinpal
 			
 		}
 
-		private var _merchantID:String;
+		private var _merchantID:String = "";
 		
 		public function get merchantID():String
 		{
@@ -19,7 +19,7 @@ package com.zarinpal
 			_merchantID = value;
 		}
 
-		private var _amount:Number;
+		private var _amount:Number = 100;
 		
 		public function get amount():Number
 		{
@@ -31,7 +31,7 @@ package com.zarinpal
 			_amount = value;
 		}
 
-		private var _description:String;
+		private var _description:String = "";
 		
 		public function get description():String
 		{
@@ -43,7 +43,7 @@ package com.zarinpal
 			_description = value;
 		}
 
-		private var _callbackURL:String;
+		private var _callbackURL:String = "";
 		
 		public function get callbackURL():String
 		{
@@ -55,7 +55,7 @@ package com.zarinpal
 			_callbackURL = value;
 		}
 
-		private var _mobileNumber:String;
+		private var _mobileNumber:String = "";
 		
 		public function get mobileNumber():String
 		{
@@ -67,7 +67,7 @@ package com.zarinpal
 			_mobileNumber = value;
 		}
 
-		private var _email:String;
+		private var _email:String = "";
 		
 		public function get email():String
 		{
@@ -79,7 +79,7 @@ package com.zarinpal
 			_email = value;
 		}
 
-		private var _useSandBox:Boolean;
+		private var _useSandBox:Boolean = false;
 		
 		public function get useSandBox():Boolean
 		{

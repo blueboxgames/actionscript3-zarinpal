@@ -4,11 +4,16 @@ package com.zarinpal
 	import flash.system.Capabilities;
 	import flash.external.ExtensionContext;
 	import flash.events.StatusEvent;
+	import flash.events.Event;
+	import flash.desktop.NativeApplication;
+	import flash.events.InvokeEvent;
+	import com.zarinpal.events.ZarinPalEvent;
 
 	public class ZarinPal extends EventDispatcher
 	{
 		static private const Android:Boolean = Capabilities.manufacturer.indexOf( "Android" ) > -1;
 		static private var _instance:ZarinPal;
+		private var _callbackURL:String;
 
 		private var _context:ExtensionContext;
 
@@ -27,7 +32,7 @@ package com.zarinpal
 			if(this._context == null)
 				trace("com.zarinpal.ZarinPalANE: Failed to initialize native extension context.");
 
-			// this._context.addEventListener( StatusEvent.STATUS, context_statusHandler);
+			this._context.addEventListener( StatusEvent.STATUS, context_statusHandler);
 		}
 
 		// -------------------
@@ -47,14 +52,34 @@ package com.zarinpal
 		}
 
 		public function startPayment(payment:PaymentRequest):void
+		{			
+			this._callbackURL = payment.callbackURL;
+			this._context.call("zarinpal", "startPayment", payment.merchantID, 
+				payment.amount, payment.description, this._callbackURL, payment.email,
+				payment.mobileNumber, payment.useSandBox);
+			NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, application_invokeHandler);
+		}
+
+		public function getRefID():String
 		{
-			var method:String;
-			if(payment.useSandBox)
-				method = "startSandBoxPayment";
-			else
-				method = "startPayment";
-			
-			this._context.call("zarinpal", method, payment.merchantID, payment.amount, payment.description, payment.callbackURL, payment.email, payment.mobileNumber);
+			return this._context.call("zarinpal", "getRefID") as String;
+		}
+
+		public function application_invokeHandler(event:InvokeEvent):void
+		{
+			if(event.arguments.length == 0)
+				return;
+			NativeApplication.nativeApplication.removeEventListener(InvokeEvent.INVOKE, application_invokeHandler);
+			var callbackURL:String = event.arguments[0];
+			if(callbackURL.match(this._callbackURL)[0] == this._callbackURL)
+				this._context.call("zarinpal", "getPurchase");
+		}
+
+		private function context_statusHandler(event:StatusEvent):void
+		{
+			if(isSupported() == false)
+				return;
+			this.dispatchEvent(new ZarinPalEvent(event.code));
 		}
 	}
 }
