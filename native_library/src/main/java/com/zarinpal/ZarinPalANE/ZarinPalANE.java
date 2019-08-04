@@ -15,6 +15,8 @@ public class ZarinPalANE {
 	public ZarinPalExtensionContext nativeContext;
 	protected static ZarinPalANE _instance = null;
 	protected String purchaseRefID;
+	protected String purchaseDescription;
+	protected PaymentRequest payment;
 
 	public static ZarinPalANE getInstance(){
 		if(_instance == null)
@@ -22,25 +24,28 @@ public class ZarinPalANE {
 		return _instance;
 	}
 
-	public void startPayment(String merchantID, long amount, String description, String callBackURL,
-													 String email, String mobileNumber, Boolean useSandBox) {
-		PaymentRequest payment;
+	public void initialize(String merchantID, String callBackURL, Boolean useSandBox, String mobileNumber, String email)
+	{
 		if(useSandBox)
-			payment = ZarinPal.getSandboxPaymentRequest();
+			this.payment = ZarinPal.getSandboxPaymentRequest();
 		else
-			payment = ZarinPal.getPaymentRequest();
+			this.payment = ZarinPal.getPaymentRequest();
 
-		ZarinPal purchase = ZarinPal.getPurchase(nativeContext.getActivity().getApplicationContext());
-		payment.setMerchantID(merchantID);
-		payment.setAmount(amount);
-		payment.setDescription(description);
-		payment.setCallbackURL(callBackURL);
+		this.payment.setMerchantID(merchantID);
+		this.payment.setCallbackURL(callBackURL);
 		if(email != "")
-			payment.setEmail(email);
+			this.payment.setEmail(email);
 		if(mobileNumber != "")
-			payment.setMobile(mobileNumber);
+			this.payment.setMobile(mobileNumber);
+	}
 
-		purchase.startPayment(payment, new OnCallbackRequestPaymentListener() {
+	public void startPayment( long amount, String description ) {
+		ZarinPal purchase = ZarinPal.getPurchase(nativeContext.getActivity().getApplicationContext());
+	
+		this.payment.setAmount(amount);
+		this.payment.setDescription(description);
+
+		purchase.startPayment(this.payment, new OnCallbackRequestPaymentListener() {
 			@Override
 			public void onCallbackResultPaymentRequest(int status, String authority, Uri paymentGatewayUri, Intent intent) {
 				if(status == 100) {
@@ -60,6 +65,7 @@ public class ZarinPalANE {
 			public void onCallbackResultVerificationPayment(boolean isPaymentSuccess, String refID, PaymentRequest paymentRequest) {
 				if (isPaymentSuccess) {
 					purchaseRefID = refID;
+					purchaseDescription = paymentRequest.getDescription();
 					nativeContext.dispatchStatusEventAsync("purchaseSuccess", "status");
 				} else {
 					nativeContext.dispatchStatusEventAsync("purchaseFailure", "status");
@@ -71,6 +77,12 @@ public class ZarinPalANE {
 	public String getRefID(){
 		if(purchaseRefID != null)
 			return purchaseRefID;
+		return "";
+	}
+	
+	public String getDescription(){
+		if(purchaseDescription != null)
+			return purchaseDescription;
 		return "";
 	}
 }

@@ -13,7 +13,11 @@ package com.zarinpal
 	{
 		static private const Android:Boolean = Capabilities.manufacturer.indexOf( "Android" ) > -1;
 		static private var _instance:ZarinPal;
-		private var _callbackURL:String;
+		static private var _callbackURL:String;
+		static private var _merchantID:String;
+		static private var _useSandBox:Boolean;
+		static private var _email:String;
+		static private var _mobileNumber:String;
 
 		private var _context:ExtensionContext;
 
@@ -43,6 +47,27 @@ package com.zarinpal
 			return Android;
 		}
 
+		static public function set merchantID(value:String):void
+		{
+			if(_merchantID == value)
+				return;
+			_merchantID = value;
+		}
+
+		static public function set callbackURL(value:String):void
+		{
+			if(_callbackURL == value)
+				return;
+			_callbackURL = value;
+		}
+
+		static public function set useSandBox(value:Boolean):void
+		{
+			if(_useSandBox == value)
+				return;
+			_useSandBox = value;
+		}
+
 		// -------------------
 		// Methods
 		// -------------------
@@ -51,12 +76,28 @@ package com.zarinpal
 			this._context.dispose();
 		}
 
+		public function initialize():void
+		{
+			if(_merchantID != null && _callbackURL != null)
+			{
+				if(_mobileNumber == null)
+					_mobileNumber = "";
+				if(_email == null)
+					_email = "";
+				if(_useSandBox == null)
+					_useSandBox = false;
+				this._context.call("zarinpal", "initialize", _merchantID, _callbackURL, _useSandBox, _mobileNumber, _email);
+			}
+			else
+			{
+				trace("ZarinPalANE: merchantID and callbackURL must be set.");
+				return;
+			}
+		}
+
 		public function startPayment(payment:PaymentRequest):void
-		{			
-			this._callbackURL = payment.callbackURL;
-			this._context.call("zarinpal", "startPayment", payment.merchantID, 
-				payment.amount, payment.description, this._callbackURL, payment.email,
-				payment.mobileNumber, payment.useSandBox);
+		{
+			this._context.call("zarinpal", "startPayment", payment.amount, payment.description);
 			NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, application_invokeHandler);
 		}
 
@@ -71,7 +112,7 @@ package com.zarinpal
 				return;
 			NativeApplication.nativeApplication.removeEventListener(InvokeEvent.INVOKE, application_invokeHandler);
 			var callbackURL:String = event.arguments[0];
-			if(callbackURL.match(this._callbackURL)[0] == this._callbackURL)
+			if(callbackURL.match(_callbackURL)[0] == _callbackURL)
 				this._context.call("zarinpal", "getPurchase");
 		}
 

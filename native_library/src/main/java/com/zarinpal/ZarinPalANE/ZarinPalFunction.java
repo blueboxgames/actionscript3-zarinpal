@@ -26,16 +26,22 @@ public class ZarinPalFunction implements FREFunction {
 		try {
 			String command = args[0].getAsString();
 
-			if(command.equalsIgnoreCase("startPayment"))
+			if(command.equalsIgnoreCase("initialize"))
 			{
 				String merchantID = args[1].getAsString();
-				long amount = (long) args[2].getAsDouble();
-				String description = args[3].getAsString();
-				String callBackURL = args[4].getAsString();
+				String callBackURL = args[2].getAsString();
+				Boolean useSandBox = args[3].getAsBool();
+				String mobileNumber = args[4].getAsString();
 				String email = args[5].getAsString();
-				String mobileNumber = args[6].getAsString();
-				Boolean useSandBox = args[7].getAsBool();
-				ZarinPalANE.getInstance().startPayment(merchantID, amount, description, callBackURL, email, mobileNumber, useSandBox);
+				ZarinPalANE.getInstance().initialize(merchantID, callBackURL, useSandBox, mobileNumber, email);
+				return null;
+			}
+
+			if(command.equalsIgnoreCase("startPayment"))
+			{
+				long amount = (long) args[1].getAsDouble();
+				String description = args[2].getAsString();
+				ZarinPalANE.getInstance().startPayment(amount, description);
 				return null;
 			}
 
@@ -48,6 +54,11 @@ public class ZarinPalFunction implements FREFunction {
 			if(command.equalsIgnoreCase("getRefID"))
 			{
 				return FREObject.newObject(ZarinPalANE.getInstance().getRefID());
+			}
+			
+			if(command.equalsIgnoreCase("getDescription"))
+			{
+				return FREObject.newObject(ZarinPalANE.getInstance().getDescription());
 			}
 		}
 		catch (Exception error)
