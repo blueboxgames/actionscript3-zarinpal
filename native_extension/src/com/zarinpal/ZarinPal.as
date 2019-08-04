@@ -134,9 +134,9 @@ package com.zarinpal
 		{
 			if(isSupported() == false)
 				return;
-			this.dispatchEvent(new ZarinPalEvent(event.code));
 			if(event.code == ZarinPalEvent.PURCHASE_START)
 				this._authority = this._context.call("zarinpal", "getAuthority") as String;
+			this.dispatchEvent(new ZarinPalEvent(event.code));
 		}
 	}
 }
