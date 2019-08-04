@@ -18,6 +18,7 @@ package com.zarinpal
 		static private var _useSandBox:Boolean;
 		static private var _email:String;
 		static private var _mobileNumber:String;
+		private var _authority:String;
 
 		private var _context:ExtensionContext;
 
@@ -37,6 +38,13 @@ package com.zarinpal
 				trace("com.zarinpal.ZarinPalANE: Failed to initialize native extension context.");
 
 			this._context.addEventListener( StatusEvent.STATUS, context_statusHandler);
+		}
+
+		public function get authority():String
+		{
+			if(this._authority == null)
+				return "";
+			return this._authority;
 		}
 
 		// -------------------
@@ -78,6 +86,8 @@ package com.zarinpal
 
 		public function initialize():void
 		{
+			if(isSupported() == false)
+				return;
 			if(_merchantID != null && _callbackURL != null)
 			{
 				if(_mobileNumber == null)
@@ -97,16 +107,20 @@ package com.zarinpal
 
 		public function startPayment(payment:PaymentRequest):void
 		{
+			if(isSupported() == false)
+				return;
 			this._context.call("zarinpal", "startPayment", payment.amount, payment.description);
 			NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, application_invokeHandler);
 		}
 
 		public function getRefID():String
 		{
+			if(isSupported() == false)
+				return "";
 			return this._context.call("zarinpal", "getRefID") as String;
 		}
 
-		public function application_invokeHandler(event:InvokeEvent):void
+		private function application_invokeHandler(event:InvokeEvent):void
 		{
 			if(event.arguments.length == 0)
 				return;
@@ -121,6 +135,8 @@ package com.zarinpal
 			if(isSupported() == false)
 				return;
 			this.dispatchEvent(new ZarinPalEvent(event.code));
+			if(event.code == ZarinPalEvent.PURCHASE_START)
+				this._authority = this._context.call("zarinpal", "getAuthority") as String;
 		}
 	}
 }

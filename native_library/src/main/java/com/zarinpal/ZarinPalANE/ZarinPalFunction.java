@@ -60,6 +60,11 @@ public class ZarinPalFunction implements FREFunction {
 			{
 				return FREObject.newObject(ZarinPalANE.getInstance().getDescription());
 			}
+
+			if(command.equalsIgnoreCase("getAuthority"))
+			{
+				return FREObject.newObject(ZarinPalANE.getInstance().getAuthority());
+			}
 		}
 		catch (Exception error)
 		{

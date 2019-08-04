@@ -15,6 +15,7 @@ public class ZarinPalANE {
 	public ZarinPalExtensionContext nativeContext;
 	protected static ZarinPalANE _instance = null;
 	protected String purchaseRefID;
+	protected String purchaseAuthority;
 	protected String purchaseDescription;
 	protected PaymentRequest payment;
 
@@ -49,6 +50,7 @@ public class ZarinPalANE {
 			@Override
 			public void onCallbackResultPaymentRequest(int status, String authority, Uri paymentGatewayUri, Intent intent) {
 				if(status == 100) {
+					purchaseAuthority = authority;
 					nativeContext.dispatchStatusEventAsync("purchaseStart", "status");
 					nativeContext.getActivity().startActivity(intent);
 				}
@@ -75,14 +77,14 @@ public class ZarinPalANE {
 	}
 
 	public String getRefID(){
-		if(purchaseRefID != null)
-			return purchaseRefID;
-		return "";
+		return purchaseRefID != null ? purchaseRefID : "";
 	}
 	
 	public String getDescription(){
-		if(purchaseDescription != null)
-			return purchaseDescription;
-		return "";
+		return purchaseDescription != null ? purchaseDescription : "";
+	}
+
+	public String getAuthority(){
+		return purchaseAuthority != null ? purchaseAuthority : "";
 	}
 }
