@@ -1,89 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Zarinpal native extension build script" default="all">
+<project name="Zarinpal build script" default="all">
 
-    <!-- Config -->
-    <property file="build.properties"/>
-		<property environment="env"/>
+	<!-- Config -->
+	<property file="build.properties"/>
+	<property environment="env"/>
+	<!-- All -->
+	<target name="all" depends="swc,example,asdoc" description="Full build of extension"/>
 
-    <!-- All -->
-    <target name="all" depends="swc,android,package" description="Full build of extension"/>
+	<!--
+	================================================================
+							Actionscript (SWC)
+	================================================================
+	-->
+	<target name="swc" description="Build SWC library">
+		<mkdir dir="temp/swc/content/"/>
+		<exec executable="${env.FLEX_HOME}/bin/compc.bat" failonerror="true">
+			<env key="AIR_SDK_HOME" value="${env.FLEX_HOME}"/>
+			<arg line='-source-path ../src'/>
+			<arg line='-include-sources ../src'/>
+			<arg line='-output temp/swc/${name}.swc'/>
+			<arg line='-external-library-path+="${env.FLEX_HOME}/frameworks/libs/air/airglobal.swc"'/>
+		</exec>
 
-    <!--
-    ================================================================
-                                Android
-    ================================================================
-    -->
-    <target name="android" description="Build Android Library.">
-      <echo message="Compiling android source files - using Gradle:"/>
-			<exec executable="../native_library/gradlew.bat" failonerror="false" dir="../native_library">
-				<arg value="--version"/>
-			</exec>
-			<exec executable="../native_library/gradlew.bat" failonerror="true" dir="../native_library">
-				<arg value="assembleRelease"/>
-			</exec>
-      <mkdir dir="temp/android"/>
-			<unzip src="../native_library/build/outputs/aar/native_library-release.aar" dest="temp/android">
-				<patternset>
-					<include name="classes.jar"/>
-   			</patternset>
-			</unzip>
-			<move file="temp/android/classes.jar" tofile="temp/android/${name}.jar" overwrite="true"/>
-			
-      <!-- Dependency Libraries -->
-      <copy file="../native_library/libs/com.zarinpal/purchase/purchase-${zarinpal.version}.jar" tofile="temp/android/com.zarinpal.purchase.jar"/>
-      <copy file="../native_library/libs/com.mcxiaoke.volley/library/library-${volley.version}.jar" tofile="temp/android/com.mcxiaoke.volley.library.jar"/>
-			
-			<delete dir="../native_library/build/"/>
-    </target>
+		<unzip src="temp/swc/${name}.swc" dest="temp/swc/content" overwrite="true"/>
+		<!-- Copy .swc to bin directory -->
+		<copy file="temp/swc/${name}.swc" tofile="../dist/${name}-${version}.swc" overwrite="true" />
+		<copy file="../dist/${name}-${version}.swc" tofile="../example/lib/${name}-${version}.swc" overwrite="true"/>
+		<delete dir="temp" />
+	</target>
 
-    <!--
-    ================================================================
-                            Actionscript (SWC)
-    ================================================================
-    -->
-    <target name="swc" description="Build SWC library">
-        <mkdir dir="temp/swc/content/"/>
-        <exec executable="${env.FLEX_HOME}/bin/compc.bat" failonerror="true">
-            <env key="AIR_SDK_HOME" value="${env.FLEX_HOME}"/>
-            <arg line='-source-path ../native_extension/src'/>
-            <arg line='-include-sources ../native_extension/src'/>
-            <arg line='-output temp/swc/${name}.swc'/>
-            <arg line='-external-library-path+="${env.FLEX_HOME}/frameworks/libs/air/airglobal.swc"'/>
-        </exec>
+	<!--
+	================================================================
+								Exmaple
+	================================================================
+	-->
+	<target name="example" description="Build example application.">
+		<exec executable="${env.FLEX_HOME}/bin/mxmlc.bat" failonerror="true" dir="../example">
+			<arg value="--library-path+=lib"/>
+			<arg value="--library-path+=theme"/>
+			<arg value="--output=bin/Application.swf"/>
+			<arg value="-load-config+=${env.FLEX_HOME}/frameworks/air-config.xml"/>
+			<arg line="-- src/Application.as"/>
+		</exec>
+		<copy file="../example/application.xml" tofile="../example/bin/application.xml" overwrite="true" />
+	</target>
 
-        <unzip src="temp/swc/${name}.swc" dest="temp/swc/content" overwrite="true"/>
-        <!-- Copy .swc to bin directory -->
-        <copy file="temp/swc/${name}.swc" tofile="../dist/${extensionID}.swc" overwrite="true" />
-
-        <copy file="temp/swc/content/library.swf" todir="temp/android" overwrite="true"/>
-        <copy file="temp/swc/content/library.swf" todir="temp/default" overwrite="true"/>
-    </target>
-
-    <!--
-    ================================================================
-                                Package
-    ================================================================
-    -->
-    <target name="package" description="Create the extension package">
-        <exec executable="${env.FLEX_HOME}/bin/adt.bat" failonerror="true" dir="temp/">
-            <arg value="-package"/>
-            <arg value="-target"/>
-            <arg value="ane"/>
-            <arg value="${extensionID}.ane"/>
-            <arg value="../extension.xml"/>
-            <arg line="-swc swc/${name}.swc"/>
-            <arg line="-platform Android-ARM -platformoptions ../platform-android.xml -C android/ ."/>
-            <arg line="-platform Android-x86 -platformoptions ../platform-android.xml -C android/ ."/>
-            <arg line="-platform default -C default/ ."/>
-        </exec>
-        <move file="temp/${extensionID}.ane" todir="../dist"/>
-        <delete dir="temp/"/>
-    </target>
+	<!--
+	================================================================
+								Exmaple Android
+	================================================================
+	-->
+	<target name="example-android" depends="example" description="Build example android APK.">
+		<mkdir dir="../example/dist/"/>
+		<exec executable="${env.FLEX_HOME}/bin/adt.bat" failonerror="true" dir="../example">
+			<arg value="-package"/>
+			<arg line="-target apk-captive-runtime"/>
+			<arg line="-storetype pkcs12 -keystore cert/android.p12 -storepass 12345"/>
+			<arg value="dist/Application.apk"/>
+			<arg value="bin/application.xml"/>
+			<arg line="-C bin/ ."/>
+		</exec>
+	</target>
 
 		<!--
-    ================================================================
-                                Example
-    ================================================================
+	================================================================
+								Docs
+	================================================================
 		-->
+	<target name="asdoc" description="Generate the asdoc in readable html">
+		<exec executable="${env.FLEX_HOME}/bin/asdoc.bat" failonerror="false">
+			<env key="AIR_SDK_HOME" value="${env.FLEX_HOME}"/>
+			<env key="AIR_SDK_HOME" value="${env.FLEX_HOME}"/>
+			<arg line='-source-path ../src'/>
+			<arg line='-doc-sources ../src'/>
+			<arg line='-output ../docs'/>
+			<arg line='-library-path+="${env.FLEX_HOME}/frameworks/libs/air/airglobal.swc"'/>
+		</exec>
+	</target>
 
 </project>

@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<platform xmlns="http://ns.adobe.com/air/extension/32.0">
-	<packagedDependencies>
-		<packagedDependency>com.zarinpal.purchase.jar</packagedDependency>
-		<packagedDependency>com.mcxiaoke.volley.library.jar</packagedDependency>
-	</packagedDependencies>
-</platform>

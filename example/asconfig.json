@@ -1,0 +1,34 @@
+{
+	"type": "app",
+	"config": "airmobile",
+	"airOptions": {
+		"files": [
+			{
+				"file": "files/locale",
+				"path": "locale"
+			}
+		],
+		"android": {
+			"listen": true,
+			"output": "dist/Application.apk",
+			"signingOptions": {
+				"storetype": "pkcs12",
+				"keystore": "cert/android.p12"
+			}
+		}
+	},
+	"application": "application.xml",
+	"compilerOptions": {
+		"source-path": [
+			"src"
+		],
+		"library-path": [
+			"lib",
+			"theme"
+		],
+		"output": "bin/Application.swf"
+	},
+	"files": [
+		"src/Application.as"
+	]
+}

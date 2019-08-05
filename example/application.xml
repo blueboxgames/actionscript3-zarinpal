@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<application xmlns="http://ns.adobe.com/air/application/32.0">
+  <id>com.zarinpal.example</id>
+  <versionNumber>1.0</versionNumber>
+  <name>Zarinpal Example</name>
+	<filename>Zarinpal</filename>
+  <initialWindow>
+    <title>Zarinpal</title>
+    <content>Application.swf</content>
+    <transparent>false</transparent>
+    <visible>true</visible>
+    <renderMode>direct</renderMode>
+    <minimizable>false</minimizable>
+    <maximizable>false</maximizable>
+    <resizable>false</resizable>
+    <depthAndStencil>true</depthAndStencil>
+  </initialWindow>
+
+	<android>
+    <manifestAdditions>
+<![CDATA[
+<manifest android:installLocation="auto">
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+	<application android:enabled="true" >
+    <activity android:excludeFromRecents="false">
+     <intent-filter>
+				<action android:name="android.intent.action.MAIN"/>
+				<category android:name="android.intent.category.LAUNCHER"/>
+		  </intent-filter>
+        <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+
+         <category android:name="android.intent.category.DEFAULT"/>
+         <category android:name="android.intent.category.BROWSABLE"/>
+
+         <data android:scheme="zarinpal"/>
+     </intent-filter>
+     </activity>
+	</application>	
+</manifest>]]>
+		</manifestAdditions>
+  </android>
+  <iPhone>
+    <InfoAdditions>
+<![CDATA[
+<key>CFBundleURLTypes</key>
+<array>
+    <dict>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>air.com.myflashlab.myapp</string>
+        </array>
+    </dict>
+</array>
+]]>
+    </InfoAdditions>
+  </iPhone>
+</application>
