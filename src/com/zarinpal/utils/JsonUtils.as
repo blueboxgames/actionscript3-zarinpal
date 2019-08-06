@@ -34,5 +34,16 @@ package com.zarinpal.utils
 				Amount: amount
 			});
 		}
+
+		static public function getRequestParamsToJson(request:String):Object
+		{
+			var ret:Object = new Object();
+			var params:Array = request.split("?")[1].split("&");
+			for each(var param:String in params)
+			{
+				ret[param.split("=")[0]] = param.split("=")[1];
+			}
+			return ret;
+		}
 	}
 }
