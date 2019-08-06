@@ -1,7 +1,6 @@
 package com.zarinpal.inventory
 {
 	import flash.utils.Dictionary;
-	import com.zarinpal.errors.InvalidItemError;
 
 	/**
 	 * ZarinpalInventory is the inventory of the user session which
@@ -30,7 +29,7 @@ package com.zarinpal.inventory
 		public function add(sku:String, description:String, requirments:String, outcomes:String):void
 		{
 			if(this._items.hasOwnProperty(sku))
-				throw new InvalidItemError("ZarinpalInventory: item with sku " + sku + "exists.");
+				return;
 			else
 				this._items[sku] = new ZarinpalStockItem(sku, description, requirments, outcomes);
 		}
@@ -43,7 +42,7 @@ package com.zarinpal.inventory
 		public function addItem(item:ZarinpalStockItem):void
 		{
 			if(this._items.hasOwnProperty(item.sku))
-				throw new Error("ZarinpalInventory: item with sku " + item.sku + "exists.");
+				return;
 			this._items[item.sku] = item;
 		}
 
