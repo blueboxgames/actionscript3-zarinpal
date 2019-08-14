@@ -8,7 +8,7 @@ package com.zarinpal
 	import com.zarinpal.events.ZarinpalRequestEvent;
 	import com.zarinpal.utils.JsonUtils;
 	import com.zarinpal.inventory.ZarinpalStockItem;
-	import com.zarinpal.errors.InvalidItemError;
+	import com.zarinpal.inventory.ZarinpalPurchaseActivity;
 
 	/**
 	 * Dispatched when response is recieved from Zarinpal WebGate.
@@ -44,14 +44,14 @@ package com.zarinpal
 
 		private var paymentRequestLoader:URLLoader = new URLLoader();
 
-		private var _sku:String;
-		private var _amount:int;
-		private var _description:String;
-		private var _useZarinGate:Boolean;
+		private var sku:String;
+		private var amount:int;
+		private var description:String;
+		private var useZarinGate:Boolean;
 
-		public function ZarinpalGatewayRequest(zarinGate:Boolean=false)
+		public function ZarinpalGatewayRequest(useZarinGate:Boolean=false)
 		{
-			this._useZarinGate = zarinGate;
+			this.useZarinGate = useZarinGate;
 		}
 
 		public function setRequestFor(sku:String):void
@@ -59,23 +59,23 @@ package com.zarinpal
 			var item:ZarinpalStockItem = ZarinPal.instance.inventory.getItem(sku);
 			if(item == null)
 				return;
-			this._sku = sku;
-			this._description = item.description;
+			this.sku = sku;
+			this.description = item.description;
 			if(isNaN(item.amount))
-				throw new InvalidItemError("Amount is not set proparly.");
-			this._amount = item.amount;
+				throw new Error("Amount is not set proparly.");
+			this.amount = item.amount;
 		}
 
 		public function createRequest(itemID:String, description:String, amount:int):void
 		{
-			this._sku = itemID;
-			this._description = description;
-			this._amount = amount;
+			this.sku = itemID;
+			this.description = description;
+			this.amount = amount;
 		}
 
 		public function send():void
 		{
-			if(this._sku == null || this._description == null || isNaN(this._amount))
+			if(this.sku == null || this.description == null || isNaN(this.amount))
 				return;
 			var urlRequest:URLRequest = new URLRequest(PAYMENT_REQUEST_URI);
 			urlRequest.cacheResponse = false;
@@ -85,8 +85,8 @@ package com.zarinpal
 			urlRequest.contentType = "application/json";
 			urlRequest.data = JsonUtils.getPaymentRequestJSONString(
 				ZarinPal.instance.merchantID,
-				this._amount,
-				this._description,
+				this.amount,
+				this.description,
 				ZarinPal.instance.callbackURL,
 				ZarinPal.instance.email,
 				ZarinPal.instance.mobileNumber);
@@ -99,7 +99,7 @@ package com.zarinpal
 		public function getGatewayUrl(authority:String):String
 		{
 			authority = authority.replace(/^0+/, "");
-			if(this._useZarinGate)
+			if(this.useZarinGate)
 				return ZARINPAL_GATEWAY_URL + authority + "/ZarinGate";
 			return ZARINPAL_GATEWAY_URL + authority;
 		}
@@ -111,7 +111,8 @@ package com.zarinpal
 		{
 			paymentRequestLoader.removeEventListener(Event.COMPLETE, paymentRequestLoader_completeHandler);
 			var response:Object = JSON.parse(paymentRequestLoader.data);
-			response['ProductID'] = this._sku;
+			response['ProductID'] = this.sku;
+			ZarinpalPurchaseActivity.setPurchaseActivity(this.sku, response['Authority']);
 			this.dispatchEvent(new ZarinpalRequestEvent(ZarinpalRequestEvent.PAYMENT_REQUEST_RESPONSE_RECIEVED, response));
 		}
 	}
